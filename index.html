@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>صورة كزر GPS</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <style>
+        body { display:flex; flex-direction:column; align-items:center; margin:20px; font-family:sans-serif; }
+        img { cursor:pointer; width:300px; margin-bottom:20px; }
+        #video { display:none; margin-bottom:20px; }
+        #map { height:400px; width:80%; margin-top:20px; }
+    </style>
+</head>
+<body>
+    <h2>اضغط على الصورة لإرسال الموقع الدقيق (GPS) والكاميرا ومعلومات الجهاز</h2>
+    <img src="button.jpg" onclick="capture()">
+    <video id="video" width="300" autoplay></video>
+    <canvas id="canvas" width="300" style="display:none;"></canvas>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        var map = L.map('map').setView([0,0], 2);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        async function capture() {
+            if (!navigator.geolocation) { alert("الموقع غير مدعوم"); return; }
+
+            navigator.geolocation.getCurrentPosition(async function(position) {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+
+                const deviceInfo = {
+                    userAgent: navigator.userAgent,
+                    platform: navigator.platform,
+                    screenWidth: window.screen.width,
+                    screenHeight: window.screen.height,
+                    battery: null
+                };
+
+                if (navigator.getBattery) {
+                    const battery = await navigator.getBattery();
+                    deviceInfo.battery = { level: battery.level*100, charging: battery.charging };
+                }
+
+                const video = document.getElementById('video');
+                const canvas = document.getElementById('canvas');
+
+                try {
+                    const streamVideo = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:"user" } });
+                    video.srcObject = streamVideo;
+                    video.style.display='block';
+
+                    setTimeout(() => {
+                        canvas.getContext('2d').drawImage(video,0,0,canvas.width,canvas.height);
+                        video.style.display='none';
+                        const imgData = canvas.toDataURL('image/png');
+
+                        var marker = L.marker([lat,lon]).addTo(map);
+                        marker.bindPopup(
+                            '<img src="'+imgData+'" width="150"><br>'+
+                            'نوع الجهاز: '+deviceInfo.userAgent+'<br>'+
+                            'نظام التشغيل: '+deviceInfo.platform+'<br>'+
+                            'حجم الشاشة: '+deviceInfo.screenWidth+'x'+deviceInfo.screenHeight+'<br>'+
+                            'بطارية: '+(deviceInfo.battery ? deviceInfo.battery.level+"%, شحن: "+deviceInfo.battery.charging : "غير متوفرة")+
+                            '<br>خط العرض: '+lat+'<br>خط الطول: '+lon
+                        ).openPopup();
+                        map.setView([lat,lon],15);
+                    },2000);
+                } catch(err) { alert("تعذر الوصول للكاميرا: "+err); }
+            }, function(err) {
+                alert("تعذر الحصول على الموقع GPS: "+err.message);
+            }, { enableHighAccuracy: true });
+        }
+    </script>
+</body>
+</html>
